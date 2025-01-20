@@ -1,0 +1,20 @@
+vault --version
+
+Start the Vault development server. Avoid this for production use:
+vault server -dev
+
+Set environment variables to interact with the Vault server:
+export VAULT_ADDR='http://127.0.0.1:8200'
+export VAULT_TOKEN='your-root-token'
+
+Verify the connection:
+vault status
+
+Vault supports multiple secret engines. For example, enabling the key-value (KV) engine:
+vault secrets enable -path=kv kv
+
+Store a secret:
+vault kv put kv/my-secret password=my-password
+
+Retrieve a secret:
+vault kv get kv/my-secret
