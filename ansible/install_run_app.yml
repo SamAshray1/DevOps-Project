@@ -1,0 +1,32 @@
+- hosts: all
+  become: true
+  tasks:
+  #Step 1: Install required packages
+    - name: install required packages
+      apt:
+        name:
+          - git
+          - openjdk-17-jdk
+          - maven
+        state: latest
+        update_cache: true
+
+    #Step 2: Clone the repository
+    - name: Clone repository from GitHub
+      git:
+        repo: "https://github.com/SamAshray1/bible-memorization-project.git"
+        dest: "/home/ubuntu/app"
+        version: "main"
+        force: yes
+
+    #Step 3: Build Maven project
+    - name: Build Maven Project
+      shell: mvn clean install
+      args:
+        chdir: "/home/ubuntu/app"
+
+    # Step 4: Run the JAR file
+    - name: Run the application JAR file
+      shell: "java -jar /home/ubuntu/app/target/bible-project-0.0.1-SNAPSHOT.jar &"
+      async: 10
+      poll: 0
