@@ -22,7 +22,7 @@ variable "ingress_rules" {
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"
-      cidr_blocks = ["172.17.0.2/32"]
+      cidr_blocks = ["0.0.0.0/0"]
     },
     {
       from_port   = 8080

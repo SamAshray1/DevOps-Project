@@ -16,37 +16,52 @@ data "vault_generic_secret" "aws_creds" {
   path = "aws-creds/credentials"
 }
 
+
 provider "aws" {
   region     = "us-east-1"
   access_key = data.vault_generic_secret.aws_creds.data["AWS_ACCESS_KEY_ID"]
   secret_key = data.vault_generic_secret.aws_creds.data["AWS_SECRET_ACCESS_KEY"]
 }
 
+# Data source to fetch the default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Data source to fetch default subnets
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
+
 data "vault_generic_secret" "ssh_key" {
   path = "ssh/private-key"
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  tags = {
-    Name = "main-vpc"
-  }
+resource "aws_key_pair" "ansible" {
+  key_name   = "ansible-key"
+  public_key = data.vault_generic_secret.ssh_key.data["key"]
 }
 
-resource "aws_subnet" "main" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+resource "aws_instance" "example" {
+  ami             = "ami-011899242bb902164"
+  instance_type   = "t2.micro"
+  key_name        = aws_key_pair.ansible.key_name
+  security_groups = [aws_security_group.instances.name]
+  vpc_security_group_ids = [aws_security_group.instances.id]
 
   tags = {
-    Name = "main-subnet"
+    Name = "WebServer"
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} > inventory.txt"
   }
 }
 
 resource "aws_security_group" "instances" {
   name        = "instances"
   description = "Sec grp for web server with multiple ports"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   dynamic "ingress" {
     for_each = var.ingress_rules
@@ -67,27 +82,6 @@ resource "aws_security_group" "instances" {
 
   tags = {
     Name = "web_server_sg"
-  }
-}
-
-resource "aws_key_pair" "ansible" {
-  key_name   = "ansible-key"
-  public_key = data.vault_generic_secret.ssh_key.data["key"]
-}
-
-resource "aws_instance" "example" {
-  ami             = "ami-011899242bb902164"
-  instance_type   = "t2.micro"
-  key_name        = aws_key_pair.ansible.key_name
-  subnet_id       = aws_subnet.main.id
-  vpc_security_group_ids = [aws_security_group.instances.id]
-
-  tags = {
-    Name = "WebServer"
-  }
-
-  provisioner "local-exec" {
-    command = "echo ${self.public_ip} > inventory.txt"
   }
 }
 
