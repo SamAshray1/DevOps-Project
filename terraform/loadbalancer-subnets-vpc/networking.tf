@@ -1,106 +1,111 @@
-# VPC
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+data "aws_vpc" "default_vpc" {
+  default = true
 }
 
-
-# Public Subnet 1 (AZ 1)
-resource "aws_subnet" "public_subnet_a" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
+data "aws_subnet_ids" "default_subnet" {
+  vpc_id = data.aws_vpc.default_vpc.id
 }
 
-# Public Subnet 2 (AZ 2)
-resource "aws_subnet" "public_subnet_b" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1b"
-  map_public_ip_on_launch = true
+resource "aws_security_group" "instances" {
+  name = "${var.app_name}-${var.environment_name}-instance-sg"
 }
 
+resource "aws_security_group_rule" "allow_http_inbound" {
+  type              = "ingress"
+  security_group_id = aws_security_group.instances.id
 
-# Private Subnet (for the EC2 instance)
-resource "aws_subnet" "private_subnet" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.3.0/24"
-  availability_zone       = "us-east-1b"
+  from_port   = 8080
+  to_port     = 8080
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
 }
 
-
-# Internet Gateway (for public subnets)
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-}
-
-resource "aws_lb" "example" {
-  name               = "example-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = [aws_subnet.public_subnet_a.id,aws_subnet.public_subnet_b.id]
-
-  enable_deletion_protection = false
-
-  tags = {
-    Name = "example-lb"
-  }
-}
-
-# Security group for the Load Balancer
-resource "aws_security_group" "lb_sg" {
-  name        = "lb_sg"
-  description = "Allow HTTP inbound traffic"
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTP from anywhere
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# Target Group
-resource "aws_lb_target_group" "http" {
-  name     = "http-target-group"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
-
-  health_check {
-    interval            = 30
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-}
-
-# Listener for the Load Balancer
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.example.arn
+  load_balancer_arn = aws_lb.load_balancer.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.http.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "404: page not found"
+      status_code  = 404
+    }
   }
 }
 
-# Register EC2 instance in the Target Group
-resource "aws_lb_target_group_attachment" "example" {
-  target_group_arn = aws_lb_target_group.http.arn
-  target_id        = aws_instance.example.id
+resource "aws_lb_target_group" "instances" {
+  name     = "${var.app_name}-${var.environment_name}-tg"
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.default_vpc.id
+
+  health_check {
+    path                 = "/"
+    protocol             = "HTTP"
+    matcher              = "200"
+    interval             = 15
+    timeout              = 3
+    healthy_threshold    = 2
+    unhealthy_threshold = 2
+  }
+
+}
+
+resource "aws_lb_target_group_attachment" "instance_1" {
+  target_group_arn = aws_lb_target_group.instances.arn
+  target_id        = aws_instance.instance_1.id
   port             = 8080
 }
+
+resource "aws_lb_listener_rule" "instances" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100
+
+  condition {
+    path_pattern {
+      values = ["*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.instances.arn
+  }
+}
+
+resource "aws_security_group" "alb" {
+  name = "${var.app_name}-${var.environment_name}-alb-sec-grp"
+}
+
+resource "aws_security_group_rule" "allow_alb_http_inbound" {
+  type              = "ingress"
+  security_group_id = aws_security_group.alb.id
+
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+
+}
+
+resource "aws_security_group_rule" "allow_alb_all_outbound" {
+  type              = "egress"
+  security_group_id = aws_security_group.alb.id
+
+  from_port   = 0
+  to_port     = 0
+  protocol    = "-1"
+  cidr_blocks = ["0.0.0.0/0"]
+
+}
+
+resource "aws_lb" "load_balancer" {
+  name               = "${var.app_name}-${var.environment_name}-web-app-lb"
+  load_balancer_type = "application"
+  subnets            = data.aws_subnet_ids.default_subnet.ids
+  security_groups    = [aws_security_group.alb.id]
+}
+
