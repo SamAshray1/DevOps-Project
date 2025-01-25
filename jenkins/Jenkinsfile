@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    tools {
+        maven 'Maven 3.8.8' // Use the name defined in Global Tool Configuration
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Clone your repository (replace with your repo URL)
+                git branch: 'main', url: 'https://github.com/SamAshray1/bible-memorization-project.git'
+            }
+        }
+        stage('Build JAR') {
+            steps {
+                sh 'mvn clean package' // Adjust if you're not using Maven
+            }
+        }
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['EC-SSH']) {
+                    script {
+                        def ec2User = 'ubuntu'
+                        def ec2Host = '52.23.252.211'
+                        def jarName = 'bible-project-0.0.1-SNAPSHOT.jar'
+                        
+                        // Add host key to known_hosts
+                        // sh """
+                        // ssh-keyscan -H ${ec2Host} >> ~/.ssh/known_hosts
+                        // """
+
+                        // Copy the JAR to EC2
+                        sh """
+                        scp target/${jarName} ${ec2User}@${ec2Host}:/home/${ec2User}/
+                        """
+
+                        // SSH into EC2, build and run the JAR
+                        sh """
+                        ssh ${ec2User}@${ec2Host}
+                        pkill -f ${jarName} || true
+                        nohup java -jar /home/ubuntu/app/target/bible-project-0.0.1-SNAPSHOT.jar & > app.log 2>&1 &
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
