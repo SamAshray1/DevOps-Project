@@ -1,0 +1,11 @@
+- hosts: all
+  become: true
+  tasks:
+  #Step 1: Install required packages
+    - name: install required packages
+      apt:
+        name:
+          - openjdk-17-jdk
+        state: latest
+        update_cache: true
+

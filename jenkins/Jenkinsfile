@@ -20,24 +20,27 @@ pipeline {
                 sshagent(['EC-SSH']) {
                     script {
                         def ec2User = 'ubuntu'
-                        def ec2Host = '52.23.252.211'
+                        def ec2Host = '54.82.255.225'
                         def jarName = 'bible-project-0.0.1-SNAPSHOT.jar'
-                        
-                        // Add host key to known_hosts
-                        // sh """
-                        // ssh-keyscan -H ${ec2Host} >> ~/.ssh/known_hosts
-                        // """
 
-                        // Copy the JAR to EC2
+                        // Add EC2 host key to known_hosts to avoid SSH verification issues
+                        sh """
+                        mkdir -p ~/.ssh
+                        ssh-keyscan -H ${ec2Host} >> ~/.ssh/known_hosts
+                        """
+
+                        // Copy the JAR to the EC2 instance
                         sh """
                         scp target/${jarName} ${ec2User}@${ec2Host}:/home/${ec2User}/
                         """
 
-                        // SSH into EC2, build and run the JAR
+                        // SSH into EC2, kill any running instances of the app, and run the new JAR
                         sh """
-                        ssh ${ec2User}@${ec2Host}
+                        ssh -t ${ec2User}@${ec2Host} <<EOF
                         pkill -f ${jarName} || true
-                        nohup java -jar /home/ubuntu/app/target/bible-project-0.0.1-SNAPSHOT.jar & > app.log 2>&1 &
+                        whoami
+                        ls -ltr /home/${ec2User}
+                        nohup java -jar /home/${ec2User}/${jarName} > app.log 2>&1 &
                         """
                     }
                 }

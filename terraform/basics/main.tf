@@ -16,21 +16,10 @@ data "vault_generic_secret" "aws_creds" {
   path = "aws-creds/credentials"
 }
 
-
 provider "aws" {
   region     = "us-east-1"
   access_key = data.vault_generic_secret.aws_creds.data["AWS_ACCESS_KEY_ID"]
   secret_key = data.vault_generic_secret.aws_creds.data["AWS_SECRET_ACCESS_KEY"]
-}
-
-# Data source to fetch the default VPC
-data "aws_vpc" "default" {
-  default = true
-}
-
-# Data source to fetch default subnets
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
 }
 
 data "vault_generic_secret" "ssh_key" {
@@ -39,7 +28,7 @@ data "vault_generic_secret" "ssh_key" {
 
 resource "aws_key_pair" "ansible" {
   key_name   = "ansible-key"
-  public_key = data.vault_generic_secret.ssh_key.data["key"]
+  public_key = data.vault_generic_secret.ssh_key.data["private_key"]
 }
 
 resource "aws_instance" "example" {
@@ -47,21 +36,19 @@ resource "aws_instance" "example" {
   instance_type   = "t2.micro"
   key_name        = aws_key_pair.ansible.key_name
   security_groups = [aws_security_group.instances.name]
-  vpc_security_group_ids = [aws_security_group.instances.id]
-
+ 
   tags = {
     Name = "WebServer"
   }
 
   provisioner "local-exec" {
-    command = "echo ${self.public_ip} > inventory.txt"
+    command = "echo ubuntu@${self.public_dns} > /root/devops-project/ansible/inventory"
   }
 }
 
 resource "aws_security_group" "instances" {
   name        = "instances"
   description = "Sec grp for web server with multiple ports"
-  vpc_id      = data.aws_vpc.default.id
 
   dynamic "ingress" {
     for_each = var.ingress_rules
@@ -86,5 +73,5 @@ resource "aws_security_group" "instances" {
 }
 
 output "public_ip" {
-  value = aws_instance.example.public_ip
+  value = aws_instance.example.public_dns
 }
