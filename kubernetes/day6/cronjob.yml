@@ -1,0 +1,22 @@
+# Undertand the cron syntax and create a cronjob object in kubernetes that prints "LearningK8s" after every 2 minutes 
+# and use busybox image
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox:1.28
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - date; echo LearningK8s
+          restartPolicy: OnFailure
