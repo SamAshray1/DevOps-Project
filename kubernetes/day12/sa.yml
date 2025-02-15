@@ -1,0 +1,11 @@
+# Manually create a long-lived API token for a ServiceAccount 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: build-robot-secret
+  annotations:
+    kubernetes.io/service-account.name: build-robot
+type: kubernetes.io/service-account-token
+
+# kubectl describe secrets/build-robot-secret 
+# kubectl get secret/build-robot-secret -o yaml
