@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+
+  jfrog:
+    image: docker.bintray.io/jfrog/artifactory-oss:latest
+    container_name: jfrog
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    environment:
+      JFROG_HOME: /var/opt/jfrog/artifactory
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
