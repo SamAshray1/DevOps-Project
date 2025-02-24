@@ -1,3 +1,7 @@
+## Troubleshooting Apps
+
+git clone https://github.com/piyushsachdeva/example-voting-app
+
 ## Solution to the app failures
 
 1. In vote-svc.yml
