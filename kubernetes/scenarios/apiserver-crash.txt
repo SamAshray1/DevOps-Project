@@ -1,0 +1,9 @@
+Apiserver Crash
+
+Log locations to check:
+
+    /var/log/pods
+    /var/log/containers
+    crictl ps + crictl logs
+    docker ps + docker logs (in case when Docker is used)
+    kubelet logs: /var/log/syslog or journalctl
