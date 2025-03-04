@@ -1,0 +1,4 @@
+ETCD Restore and save
+
+etcdctl snapshot save [filename]
+etcdctl snapshot restore [filename]
