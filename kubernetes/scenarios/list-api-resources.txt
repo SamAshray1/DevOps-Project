@@ -1,0 +1,3 @@
+k api-reources
+
+sudo systemctl list-unit-files --type service --all | grep kube > services.csv

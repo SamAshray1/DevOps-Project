@@ -1,0 +1,5 @@
+Kubelet cert path:
+var/lib/kubelet/pki
+
+kubelet.conf path:
+/etc/kubernetes/
