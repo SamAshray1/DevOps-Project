@@ -15,7 +15,7 @@ https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
 ### Upgrade steps
 
 1) Upgrade master node
-2) Ipgrade worker node
+2) Upgrade worker node
 
 >Note: when master is down, mangement operation are down, pods continue to run
 
