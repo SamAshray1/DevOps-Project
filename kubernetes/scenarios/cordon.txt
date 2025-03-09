@@ -1,0 +1,14 @@
+Cordon - Mark node as unschedulable.
+  # Mark node "foo" as unschedulable
+  kubectl cordon foo
+
+kubectl uncordon NODE
+
+
+Drain - The given node will be marked unschedulable to prevent new pods from arriving. 'drain' evicts the pods
+  # Drain node "foo", even if there are pods not managed by a replication controller, replica set, job, daemon set, or stateful set on it
+  kubectl drain foo --force
+  
+  # As above, but abort if there are pods not managed by a replication controller, replica set, job, daemon set, or stateful set, and use a grace period of 15 minutes
+  kubectl drain foo --grace-period=900
+
