@@ -4,6 +4,8 @@
 ```bash
 #!/bin/bash
 
+sudo apt-get update
+
 # Install OpenJDK 17 JRE Headless
 sudo apt install openjdk-17-jre-headless -y
 
