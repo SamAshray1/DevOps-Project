@@ -2,3 +2,8 @@ ETCD Restore and save
 
 etcdctl snapshot save [filename]
 etcdctl snapshot restore [filename]
+
+  - hostPath:
+      path: /var/lib/etcd-restore # CHANGE THIS LINE
+      type: DirectoryOrCreate
+    name: etcd-data
