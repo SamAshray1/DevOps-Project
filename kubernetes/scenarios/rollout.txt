@@ -1,0 +1,17 @@
+The rollout gets stuck. You can verify it by checking the rollout status:
+kubectl rollout status deployment/nginx-deployment
+
+
+First, check the revisions of this Deployment:
+kubectl rollout history deployment/nginx-deployment
+
+To see the details of each revision, run:
+kubectl rollout history deployment/nginx-deployment --revision=2
+
+
+Rolling Back to a Previous Revision
+
+Now you've decided to undo the current rollout and rollback to the previous revision:
+kubectl rollout undo deployment/nginx-deployment
+
+kubectl rollout undo deployment/nginx-deployment --to-revision=2
