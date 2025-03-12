@@ -1,0 +1,1 @@
+kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.16.1
