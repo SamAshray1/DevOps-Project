@@ -1,0 +1,19 @@
+Modify the kubernetes API server pod YAML
+vim /etc/kubernetes/manifests/kube-apiserver.yaml 
+    - --service-cluster-ip-range=10.96.0.0/12
+
+Change the IP address associated with the cluster's DNS Service.
+It's the kube-dns service in the kube-system namespace. k -n kube-system edit svc kube-dns 
+
+In order to change how new pods pick up their DNS info, change the kubelet config to use a cluster DNS of 100.96.0.10.
+Perform the change to the config.yaml on the node where pods run.
+vim /var/lib/kubelet/config.yaml 
+
+Then, edit the kubelet configMap in the kube-system namespace to use DNS 100.96.0.10.
+k -n kube-system edit cm kubelet-config
+
+Reload the kubelet configuration without restarting the node.
+
+kubeadm upgrade node phase kubelet-config
+systemctl daemon-reload
+systemctl restart kubelet
