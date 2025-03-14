@@ -1,0 +1,2 @@
+kubectl exec my-pod-cka -c nginx-container -- ls -l /var/www/shared
+kubectl exec my-pod-cka -c busybox-sidecar -- ls -l /var/www/shared
