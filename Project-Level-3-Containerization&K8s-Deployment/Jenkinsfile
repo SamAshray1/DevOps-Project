@@ -3,9 +3,10 @@ pipeline {
 
     environment {
         AWS_REGION = "us-east-1"
-        EKS_CLUSTER_NAME = "my-eks-cluster"
+        EKS_CLUSTER_NAME = "<CLUSTER-Name>"
         DOCKER_REPO = "samqwerty12/react-app"
-        ECR_REPO = "123456789012.dkr.ecr.us-east-1.amazonaws.com/react-app"
+        AWS_ROLE_ARN = "<Cluster-Role"
+
     }
 
     stages {
@@ -38,51 +39,46 @@ pipeline {
             }
         }
 
-//        stage('Push to AWS ECR') {
-//            steps {
-//                script {
-//                    sh """
-//                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-//                        docker tag ${DOCKER_REPO}:${BUILD_NUMBER} $ECR_REPO:${BUILD_NUMBER}
-//                        docker push $ECR_REPO:${BUILD_NUMBER}
-//                    """
-//                }
-//            }
-//        }
-
-        stage('Provision EKS Cluster with Terraform') {
+        stage('Set AWS Credentials') {
             steps {
                 script {
-                    sh """
-                        cd terraform/
-                        terraform init
-                        terraform apply -auto-approve
-                    """
+                    withAWS(credentials: 'jenkins-aws-credentials', region: "${AWS_REGION}") {
+                        def credentials = sh(script: """
+                            aws sts assume-role --role-arn ${AWS_ROLE_ARN} --role-session-name jenkins-eks-session --output json
+                        """, returnStdout: true).trim()
+
+                        // Parse JSON using jq (ensure jq is installed in Jenkins agent)
+                        env.AWS_ACCESS_KEY_ID = sh(script: "echo '${credentials}' | jq -r '.Credentials.AccessKeyId'", returnStdout: true).trim()
+                        env.AWS_SECRET_ACCESS_KEY = sh(script: "echo '${credentials}' | jq -r '.Credentials.SecretAccessKey'", returnStdout: true).trim()
+                        env.AWS_SESSION_TOKEN = sh(script: "echo '${credentials}' | jq -r '.Credentials.SessionToken'", returnStdout: true).trim()
+                    }
                 }
             }
         }
-
-        stage('Configure kubectl for EKS') {
+        stage('Configure Kubeconfig') {
             steps {
-                script {
-                    sh """
-                        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
-                        kubectl get nodes
-                    """
-                }
+                sh '''
+                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                    export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
+                    
+                    aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
+                '''
             }
         }
-
-        stage('Deploy App using Helm') {
+        stage('Deploy to EKS') {
             steps {
-                script {
-                    sh """
-                        helm repo add my-chart-repo https://your-helm-repo
-                        helm upgrade --install react-app ./helm-chart --set image.repository=$ECR_REPO,image.tag=${BUILD_NUMBER}
-                    """
-                }
+                sh '''
+                    kubectl apply -f deployment.yaml
+                    kubectl get pods
+                '''
             }
         }
+    
+
+
+
+    
     }
 
     post {
