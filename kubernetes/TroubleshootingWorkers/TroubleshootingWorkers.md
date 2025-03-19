@@ -13,7 +13,7 @@
 Problem 1
 
 systemctl status kubelet
-journal -u kubelet
+journalctl -u kubelet
 
 Found /var/lib/kubelet/config.yml is looking for .crt file in /etc/kubernetes/pki, but wrong .crt filename is present.
 Changed the certname in config.yml and restarted kubelet on worker

@@ -2,9 +2,15 @@
 
 wget -O splunkforwarder-9.4.1-e3bdab203ac8-linux-amd64.tgz "https://download.splunk.com/products/universalforwarder/releases/9.4.1/linux/splunkforwarder-9.4.1-e3bdab203ac8-linux-amd64.tgz"
 
+tar -xvf splunkforwarder-9.4.1-e3bdab203ac8-linux-amd64.tgz
+
+sudo mv splunkforwarder /opt/splunkforwarder
+
 sudo /opt/splunkforwarder/bin/splunk enable boot-start
 
-/opt/splunkforwarder/bin/splunk add forward-server hostname.domain:9997
+/opt/splunkforwarder/bin/splunk add forward-server hostname:9997
+
+/opt/splunkforwarder/bin/splunk restart
 
 Test Forwarder connection:
 /opt/splunkforwarder/bin/splunk list forward-server
