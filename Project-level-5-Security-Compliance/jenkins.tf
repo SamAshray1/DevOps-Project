@@ -2,16 +2,10 @@ provider "aws" {
   region = "us-east-1" # Change as needed
 }
 
-resource "aws_key_pair" "jenkins_key" {
-  key_name   = "jenkins-key"
-  public_key = file("jenkins-key.pub")
-}
-
-
 resource "aws_instance" "jenkins" {
   ami             = "ami-011899242bb902164"
   instance_type   = "t2.medium"
-  key_name        = aws_key_pair.jenkins_key.key_name
+  key_name        = "k8s-new"
   security_groups = ["jenkins-sg"]
   user_data       = file("jenkins-init.sh")
 
