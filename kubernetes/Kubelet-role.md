@@ -32,5 +32,3 @@ On control plane nodes, kubelet plays a similar role but also manages control pl
 - Kubelet is critical for running and managing Pods.  
 - It acts as the bridge between the **control plane** and the **container runtime**.  
 - Without kubelet, nodes cannot participate in the cluster.  
-
-Would you like a deep dive into kubelet logs or troubleshooting? 🚀
