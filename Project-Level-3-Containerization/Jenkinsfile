@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = "us-east-1"
+        EKS_CLUSTER_NAME = "<CLUSTER-Name>"
+        DOCKER_REPO = "samqwerty12/react-app"
+        AWS_ROLE_ARN = "<Cluster-Role"
+
+    }
+
+    stages {
+
+        stage('Git Checkout') {
+            steps {
+               git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/SamAshray1/portfolio-website.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def DATE_TAG = new Date().format("yyyyMMdd-HH")
+                    def IMAGE_TAG = "${BUILD_NUMBER}-${DATE_TAG}"
+
+                    dockerImage = docker.build("${DOCKER_REPO}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withDockerRegistry([credentialsId: 'dockerhub-credentials', url: '']) {
+                    script {
+                        dockerImage.push("${BUILD_NUMBER}")
+                        dockerImage.push("latest")
+                    }
+                }
+            }
+        }
+
+        stage('Set AWS Credentials') {
+            steps {
+                script {
+                    withAWS(credentials: 'jenkins-aws-credentials', region: "${AWS_REGION}") {
+                        def credentials = sh(script: """
+                            aws sts assume-role --role-arn ${AWS_ROLE_ARN} --role-session-name jenkins-eks-session --output json
+                        """, returnStdout: true).trim()
+
+                        // Parse JSON using jq (ensure jq is installed in Jenkins agent)
+                        env.AWS_ACCESS_KEY_ID = sh(script: "echo '${credentials}' | jq -r '.Credentials.AccessKeyId'", returnStdout: true).trim()
+                        env.AWS_SECRET_ACCESS_KEY = sh(script: "echo '${credentials}' | jq -r '.Credentials.SecretAccessKey'", returnStdout: true).trim()
+                        env.AWS_SESSION_TOKEN = sh(script: "echo '${credentials}' | jq -r '.Credentials.SessionToken'", returnStdout: true).trim()
+                    }
+                }
+            }
+        }
+        stage('Configure Kubeconfig') {
+            steps {
+                sh '''
+                    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                    export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
+                    
+                    aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
+                '''
+            }
+        }
+        stage('Deploy to EKS') {
+            steps {
+                sh '''
+                    kubectl apply -f deployment.yaml
+                    kubectl get pods
+                '''
+            }
+        }
+    
+
+
+
+    
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
