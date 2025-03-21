@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "us-east-1" # Change as needed
-}
-
 resource "aws_instance" "jenkins" {
   ami             = "ami-011899242bb902164"
   instance_type   = "t2.medium"
@@ -54,6 +50,6 @@ resource "aws_security_group" "jenkins_sg" {
 }
 
 output "public_ip" {
-  value = aws_instance.jenkins.public_dns
+  value = aws_instance.jenkins.public_ip
 }
 
