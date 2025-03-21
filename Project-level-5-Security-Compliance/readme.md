@@ -6,7 +6,8 @@ Docker
 docker pipeline
 Github Credentials
 AWS Credentials
-
+HashiCorp Vault Plugin
+Hashicorp Vault Pipeline Plugin
 
 Terraform -> Get Jenkins Instance
 
