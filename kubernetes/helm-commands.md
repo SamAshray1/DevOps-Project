@@ -1,17 +1,53 @@
+## Helm
+Helm helps you manage Kubernetes application - Helm Charts help you define, install adn upgrade even the most complex application.
+Helm is the package manager for Kubernetes.
+
+Charts are easy to create, version, share and publish.
+
 ## Helm Commands
 
-helm create <>
+create a new chart with the given name
+helm create NAME [flags]
 
-helm install <> <>
+This command installs a chart archive.
+The install argument must be a chart reference, a path to a packaged chart, a path to an unpacked chart directory or a URL.
+helm install [NAME] [CHART] [flags]
 
-helm list 
+list releases
+helm list [flags]
 
-helm rollback <> <>
+roll back a release to a previous revision
+helm rollback <RELEASE> [REVISION] [flags]
 
 helm install <> --debug --dry-run helloworld
 
-helm template helloworld
+Render chart templates locally and display the output.
+helm template [NAME] [CHART] [flags]
 
-helm lint
+This command takes a path to a chart and runs a series of tests to verify that the chart is well-formed.
+helm lint PATH [flags]
 
-helm uninstall
+This command takes a release name and uninstalls the release.
+helm uninstall RELEASE_NAME [...] [flags]
+
+
+## Chart Hooks
+Helm provides a hook mechanism to allow chart developers to intervene at certain points in a release's life cycle.
+Usually are jobs in helm_chart_name/templates/hooks/hook_filename.yml
+
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+
+## Helm Test
+A chart contains a number of Kubernetes resources and components that work together. As a chart author, you may want to write some tests that validate that your chart works as expected when it is installed. These tests also help the chart consumer understand what your chart is supposed to do.
+
+--> Helm chart has to be installed for test to work
+helm test demo
+
+## Helmfile
+helmfile sync
+use the above 1 command to sync the helmfile configuration file
