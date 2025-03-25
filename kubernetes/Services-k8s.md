@@ -31,3 +31,15 @@ In Kubernetes, there are several service types that define how a service is expo
    - Maps a service to a DNS name outside the cluster.
    - The DNS name can be an external service, and Kubernetes will forward requests to that DNS address.
    - This is useful for services that are external to the Kubernetes cluster but you want to access them like a native Kubernetes service.
+
+
+1. When is FQDN Used?
+✅ Cross-Namespace Communication
+
+By default, a Service name alone only works within the same namespace.
+If you need to access a Service from another namespace, you must use the FQDN.
+
+2. When Can You Use Just the Service Name?
+
+✅ Inside the same namespace
+✅ When using ClusterIP, NodePort, or LoadBalancer
