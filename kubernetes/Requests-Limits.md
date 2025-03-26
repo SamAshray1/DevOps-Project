@@ -13,8 +13,8 @@ Why Use Requests and Limits?
 
 ⚠️ Key Considerations
 
-✅ CPU Throttling: If a pod exceeds its CPU limit, Kubernetes throttles it (delays execution).
-✅ Memory Kills: If a pod exceeds its memory limit, it is terminated (OOMKilled).
-✅ No Limits = No Boundaries: If you don’t set limits, a pod can consume all available resources.
-✅ Requests Affect Scheduling: The Kubernetes scheduler places pods based on requests, not limits.
+✅ CPU Throttling: If a pod exceeds its CPU limit, Kubernetes throttles it (delays execution).<br>
+✅ Memory Kills: If a pod exceeds its memory limit, it is terminated (OOMKilled).<br>
+✅ No Limits = No Boundaries: If you don’t set limits, a pod can consume all available resources.<br>
+✅ Requests Affect Scheduling: The Kubernetes scheduler places pods based on requests, not limits.<br>
 ✅ Resource Overcommitment: Nodes can schedule more pods than their total resources if limits are not enforced.

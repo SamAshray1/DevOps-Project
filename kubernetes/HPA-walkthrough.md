@@ -1,6 +1,6 @@
 # HPA Walkthrough
 
-1. Enable the Metrics Server
+1. Enable the Metrics Server (refer day 8 folder)
 2. Create HPA for the Deployment<br>
 kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
 
