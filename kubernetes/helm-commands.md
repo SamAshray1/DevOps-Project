@@ -6,28 +6,28 @@ Charts are easy to create, version, share and publish.
 
 ## Helm Commands
 
-create a new chart with the given name
+Create a new chart with the given name:<br>
 helm create NAME [flags]
 
 This command installs a chart archive.
-The install argument must be a chart reference, a path to a packaged chart, a path to an unpacked chart directory or a URL.
+The install argument must be a chart reference, a path to a packaged chart, a path to an unpacked chart directory or a URL.<br>
 helm install [NAME] [CHART] [flags]
 
-list releases
+list releases<br>
 helm list [flags]
 
-roll back a release to a previous revision
+roll back a release to a previous revision<br>
 helm rollback <RELEASE> [REVISION] [flags]
 
 helm install <> --debug --dry-run helloworld
 
-Render chart templates locally and display the output.
+Render chart templates locally and display the output.<br>
 helm template [NAME] [CHART] [flags]
 
-This command takes a path to a chart and runs a series of tests to verify that the chart is well-formed.
+This command takes a path to a chart and runs a series of tests to verify that the chart is well-formed.<br>
 helm lint PATH [flags]
 
-This command takes a release name and uninstalls the release.
+This command takes a release name and uninstalls the release.<br>
 helm uninstall RELEASE_NAME [...] [flags]
 
 
