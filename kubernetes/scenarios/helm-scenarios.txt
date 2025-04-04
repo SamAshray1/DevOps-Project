@@ -1,0 +1,69 @@
+1. Install an OCI Helm chart from DockerHub (Bitnami) into namespace nginx-ns, use oci://registry-1.docker.io/bitnamicharts/nginx, and version 19.0.0
+helm install nginx oci://registry-1.docker.io/bitnamicharts/nginx --namespace nginx-ns --create-namespace
+
+2.  Render and preview the manifests of NGINX without installing it
+helm template nginx-preview bitnami/nginx  --version 19.0.1
+
+3. Get the full Kubernetes manifest of the prometheus release in monitoring namespace
+helm get manifest prometheus -n monitoring
+
+4. List all Helm releases in the kube-system namespace
+helm list -n kube-system
+
+5. Rollback release custom-nginx in namespace web to the previous revision
+helm history custom-nginx -n web
+helm rollback custom-nginx <previous_revision_number> -n web
+
+6.  Install NGINX with service.type=NodePort in namespace web using release name custom-nginx
+helm install custom-nginx bitnami/nginx \
+  --version 7.6.2 \
+  --namespace web \
+  --create-namespace \
+  --set service.type=NodePort
+
+7. Add a new Helm repo prometheus-community and search for all versions of the kube-prometheus-stack chart
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm search repo prometheus-community/kube-prometheus-stack --versions
+
+8. Install kube-prometheus-stack version 55.6.0 into namespace monitoring as prom-stack
+helm install prom-stack prometheus-community/kube-prometheus-stack \
+  --version 55.6.0 \
+  --namespace monitoring \
+  --create-namespace
+
+9. Get the Helm values (including defaults) used for prom-stack
+helm get values prom-stack -n monitoring --all
+
+10. Use helm show values to display default values of the bitnami/nginx chart without installing it
+helm show values oci://registry-1.docker.io/bitnamicharts/nginx
+
+11. Install bitnami/nginx with TLS enabled using a provided tls-values.yaml
+ingress:
+  enabled: true
+  hostname: nginx.example.com
+  tls: true
+  selfSigned: true
+
+helm install tls-nginx bitnami/nginx \
+  --namespace websecure \
+  --create-namespace \
+  -f tls-values.yaml
+
+12. Upgrade an existing web-nginx release to use a values.yaml file instead of CLI flags
+replicaCount: 2
+service:
+  type: ClusterIP
+
+helm upgrade web-nginx bitnami/nginx \
+  -n apps \
+  -f values.yaml
+
+13. Create a dry-run installation of bitnami/nginx, outputting the manifests into a file
+helm template nginx-test bitnami/nginx > nginx-manifests.yaml
+
+14. Create a Helm chart from scratch named demo-chart and install it
+helm create demo-chart
+
+helm install demo ./demo-chart
