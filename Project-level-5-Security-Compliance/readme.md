@@ -27,7 +27,7 @@ We'll cover:
 ✅ **Building the Docker Image**  
 ✅ **Scanning the Image (Trivy/Snyk)**  
 ✅ **Pushing to a Registry (ECR/DockerHub)**  
-✅ **Managing Secrets Securely (Backend URL as a Secret in Vault)**  
+✅ **Managing Secrets Securely (Backend URL as a Secret in AWS Secrets Manager)**  
 ✅ **Provisioning Resources**  
 ✅ **Deploying into Kubernetes**  
 
